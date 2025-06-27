@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" th:href="@{/css/headerstyle.css}">
+  <link rel="stylesheet" th:href="@{/css/menustyle.css}">
+  <link rel="stylesheet" th:href="@{/css/AvaterStyle.css}">
+
+
+
+
+
+</head>
+<body>
+  <div class="header">
+      <div class="avatar-block">
+    <div class="avatar">
+      <img class="shape" src="shape0.png" />
+    </div>
+    <div class="info">
+      <div class="title" th:text="${#authentication.name}">USERNAME</div>
+
+      <div class="description">오늘도</div>
+      <!-- 3글자 리미트 걸기 -->
+    </div>
+
+  </div>
+<!--네비 바-->
+    <div class="navigation-pill-list">
+      <div class="navigation-pill">
+        <a href="/" class="nav-link no-underline">
+          <div class="title2">Home</div>
+        </a>
+      </div>
+      <div class="navigation-pill2">
+        <a href="/study" class="nav-link no-underline">
+          <div class="title2">Study</div>
+        </a>
+      </div>
+      <div class="navigation-pill2">
+        <a href="/chat" class="nav-link no-underline">
+          <div class="title2">Community</div>
+        </a>
+      </div>
+      <div class="navigation-pill2">
+        <a href="https://chat.openai.com" class="nav-link no-underline" target="_blank" rel="noopener">
+          <div class="title2">AI</div>
+        </a>
+      </div>
+      <div class="navigation-pill2">
+        <a href="https://github.com/B612-jujin" class="nav-link no-underline" target="_blank" rel="noopener">
+          <div class="title2">GITHUB</div>
+        </a>
+      </div>
+    </div>
+
+
+    <div class="header-auth">
+    <!-- 로그아웃만 표시 -->
+    <div class="button">
+      <a class="button2" href="/logout">Sign Out</a>
+    </div>
+    <div class="button3">
+      <!-- 유저 프로필 정보 표시 -->
+      <div class="button4">Register</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-product-results">
+    <!-- 사이드 음악 바 -->
+  <div class="filter-menu">
+    <div class="header" style="padding: 0%;">
+      <div style="font-size: 20px;">음악</div>
+    </div>
+    <div>
+      <button class="button" id="fileBtn"><div class="button2">File🗂️</div></button>
+      <button class="button3" id="urlBtn"><div class="button4">URL📼</div></button>
+      </div>
+      <input id="filePicker" type="file" accept="audio/mp3" style="display:none" />
+      <input id="urlInput" type="text" placeholder="https://youtu.be/…" style="display:none; width:100%;" />
+      <button id="setUrlBtn" style="display:none;">URL 설정</button>
+     <div id="enableimg" class="noimage" style="visibility: collapse;"></div>
+
+    <div id="playerContainer">
+      <audio id="player" controls style="display:none; width:100%; max-width:600px;"></audio>
+      <div id="youtubeContainer" style="display:none;"></div>
+    </div>
+
+
+
+    <div class="body">
+      <div class="text">
+            <div id="sourceInfo" style="visibility: collapse;">곡 이름</div>
+      </div>
+      <div class="text-strong">
+        <div class="text-strong2"></div>
+      </div>
+    </div>
+      <!-- 로직 분리된 JS -->
+  <script src="../static/musicSrc.js"></script>
+  </div>
+
+  <div class="section-product-grid">
+    <div class="filter-bar">
+      <div class="tag-toggle-group">
+        <div class="tag-toggle" sec:authorize="hasRole('ADMIN')"><a href="/goals/new" class="title">New Goal</a></div>
+      </div>
+    </div>
+
+    <!-- 카드 그리드 영역 -->
+    <div class="card-grid">
+      <div th:each="goal : ${goals}" class="product-info-card goal-card">
+        <div
+                th:unless="${goal.imageUrl != null}"
+                class="image placeholder"
+                th:style="|background-image: none; background-color: ${goal.randomColor};|">
+        </div>
+
+
+        <div class="goal-body">
+          <h3 class="goal-title" th:text="${goal.title}">목표 제목</h3>
+          <div class="goal-meta">
+            <span class="goal-date"
+                  th:text="${goal.startDate}">2025.06.27</span>
+            <span class="goal-category" th:text="${goal.category}">취미</span>
+          </div>
+          <div class="progress-container">
+            <div class="progress-bar"><div class="progress-fill" th:style="|width: ${goal.progress}%;|"></div></div>
+            <span class="progress-text" th:text="${goal.progress + '%'}">75%</span>
+          </div>
+          <div sec:authorize="hasRole('ADMIN')" class="goal-actions">
+            <a th:href="@{/goals/{id}/edit(id=${goal.id})}" class="button button2 edit">Edit</a>
+            <a th:href="@{/goals/{id}/delete(id=${goal.id})}" class="button3 button4 delete">Delete</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
