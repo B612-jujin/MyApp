@@ -70,7 +70,7 @@
 <div class="hero-form">
   <div class="section-product-grid">
       <div class="text-content-title">
-        <div class="logintitle">Create Goal</div>
+        <div th:text="${goal.id} != null ? 'Edit Goal' : 'New Goal'" class="logintitle">Create Goal</div>
       </div>
     <!-- Goal Form -->
     <div>
