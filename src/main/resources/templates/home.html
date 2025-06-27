@@ -7,6 +7,7 @@
   <link rel="stylesheet" th:href="@{/css/headerstyle.css}">
   <link rel="stylesheet" th:href="@{/css/menustyle.css}">
   <link rel="stylesheet" th:href="@{/css/AvaterStyle.css}">
+  <link rel="stylesheet" th:href="@{/css/loginStyle.css}">
 
 
 
@@ -75,14 +76,13 @@
     <div class="header" style="padding: 0%;">
       <div style="font-size: 20px;">음악</div>
     </div>
-    <div>
+    <div style="display: flex;">
       <button class="button" id="fileBtn"><div class="button2">File🗂️</div></button>
       <button class="button3" id="urlBtn"><div class="button4">URL📼</div></button>
       </div>
       <input id="filePicker" type="file" accept="audio/mp3" style="display:none" />
-      <input id="urlInput" type="text" placeholder="https://youtu.be/…" style="display:none; width:100%;" />
-      <button id="setUrlBtn" style="display:none;">URL 설정</button>
-     <div id="enableimg" class="noimage" style="visibility: collapse;"></div>
+      <input id="urlInput" type="text" placeholder="https://youtu.be/…" style="display:none; width:100%;" class="input-field" />
+      <button id="setUrlBtn" style="display:none;" class="button2">URL 설정</button>
 
     <div id="playerContainer">
       <audio id="player" controls style="display:none; width:100%; max-width:600px;"></audio>
@@ -100,7 +100,7 @@
       </div>
     </div>
       <!-- 로직 분리된 JS -->
-  <script src="../static/musicSrc.js"></script>
+  <script src="/js/musicSrc.js"></script>
   </div>
 
   <div class="section-product-grid">
@@ -113,11 +113,21 @@
     <!-- 카드 그리드 영역 -->
     <div class="card-grid">
       <div th:each="goal : ${goals}" class="product-info-card goal-card">
+        <!-- 이미지가 있을 때 -->
+        <!-- 1) 진짜 이미지가 있을 때만 렌더링 -->
         <div
-                th:unless="${goal.imageUrl != null}"
-                class="image placeholder"
-                th:style="|background-image: none; background-color: ${goal.randomColor};|">
+                class="noimage"
+                th:if="${goal.imageUrl != null and !#strings.isEmpty(goal.imageUrl)}"
+                th:style="|background-image: url('${goal.imageUrl}');|">
         </div>
+
+        <!-- 2) 이미지가 없거나 빈 문자열일 때만 placeholder -->
+        <div
+                class="noimage placeholder"
+                th:if="${goal.imageUrl == null or #strings.isEmpty(goal.imageUrl)}"
+                th:style="|background: ${goal.randomColor} !important;|">
+        </div>
+
 
 
         <div class="goal-body">

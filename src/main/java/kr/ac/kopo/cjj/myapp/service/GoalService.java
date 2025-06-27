@@ -48,8 +48,9 @@ public class GoalService {
             goal.setId("Goal" + nextNum);
         }
 
+        System.out.printf("imageUrl: %s, randomColor: %s\n", goal.getImageUrl(), goal.getRandomColor());
         // 2) 랜덤 컬러가 없으면 생성
-        if (goal.getRandomColor() == null || goal.getRandomColor().isEmpty() || goal.getImageUrl() == null || goal.getImageUrl().isEmpty()) {
+        if (goal.getRandomColor() == null || goal.getRandomColor().isEmpty() && goal.getImageUrl() == null || goal.getImageUrl().isEmpty()) {
             goal.setRandomColor(generateRandomColor());
         }
 
