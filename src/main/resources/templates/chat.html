@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Community Chat</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <link rel="stylesheet" th:href="@{/css/headerstyle.css}">
+    <link rel="stylesheet" th:href="@{/css/AvaterStyle.css}">
+    <link rel="stylesheet" th:href="@{/css/chatStyle.css}">
+
+
+</head>
+<body>
+
+    <div class="header">
+        <div class="avatar-block">
+            <div class="avatar">
+                <img class="shape" src="shape0.png" />
+            </div>
+            <div class="info">
+                <div class="title" th:text="${#authentication.name}">USERNAME</div>
+                <div class="description">오늘도</div>
+                <!-- 3글자 리미트 걸기 -->
+            </div>
+
+        </div>
+        <!--네비 바-->
+        <div class="navigation-pill-list">
+            <div class="navigation-pill">
+                <a href="/" class="nav-link no-underline">
+                    <div class="title2">Home</div>
+                </a>
+            </div>
+            <div class="navigation-pill2">
+                <a href="/study" class="nav-link no-underline">
+                    <div class="title2">Study</div>
+                </a>
+            </div>
+            <div class="navigation-pill2">
+                <a href="/chat" class="nav-link no-underline">
+                    <div class="title2">Community</div>
+                </a>
+            </div>
+            <div class="navigation-pill2">
+                <a href="https://chat.openai.com" class="nav-link no-underline" target="_blank" rel="noopener">
+                    <div class="title2">AI</div>
+                </a>
+            </div>
+            <div class="navigation-pill2">
+                <a href="https://github.com/B612-jujin" class="nav-link no-underline" target="_blank" rel="noopener">
+                    <div class="title2">Github</div>
+                </a>
+            </div>
+        </div>
+
+
+        <div class="header-auth">
+            <div class="button3">
+                <!-- 유저 프로필 정보 표시 -->
+                <div class="button4">Register</div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- 로그인 ID 를 Thymeleaf 로 꺼내서 숨겨진 input 에 세팅 -->
+<input type="hidden" id="username"
+       th:value="${#authentication.name}" />
+
+<!-- join 버튼 제거, 페이지 로드와 동시에 자동 입장 -->
+    <div class="chat_window">
+        <ul class="messages" id="messageList"></ul>
+        <div class="bottom_wrapper clearfix">
+            <div class="message_input_wrapper">
+                <input type="text" id="msgInput" class="message_input" placeholder="Type your message here..." />
+            </div>
+            <div class="send_message" id="sendBtn">Send</div>
+        </div>
+    </div>
+
+
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        let stompClient;
+        // 메세지를 렌더링할 컨테이너
+        const messageList = document.getElementById('messageList');
+        // 로그인한 ID
+        const username = /*[[${#authentication.name}]]*/ '익명';
+
+        /** 부트데이 스타일 <li> 생성 + 애니 적용 헬퍼 */
+        function appendMessage(msg) {
+            const li = document.createElement('li');
+            li.classList.add('message', 'appeared');
+            // CHAT 메시지면 left/right, JOIN/LEAVE(system) 면 left(system)
+            if (msg.type === 'CHAT') {
+                li.classList.add(msg.sender === username ? 'right' : 'left');
+            } else {
+                li.classList.add('left');          // 시스템 메시지는 왼쪽에 표시
+                li.classList.add('system');        // 추가 스타일이 필요하면 .system 사용
+            }
+
+            // Avatar (플레이어 이니셜)
+            const avatar = document.createElement('div');
+            avatar.classList.add('avatar');
+            avatar.textContent = msg.sender.charAt(0).toUpperCase();
+
+            // 텍스트 래퍼
+            const wrapper = document.createElement('div');
+            wrapper.classList.add('text_wrapper');
+            const text = document.createElement('div');
+            text.classList.add('text');
+            // 시스템 메시지 내용과 일반 메시지 내용 처리
+            text.textContent = msg.type === 'CHAT'
+                ? msg.content
+                : msg.content;
+            wrapper.appendChild(text);
+
+            li.appendChild(avatar);
+            li.appendChild(wrapper);
+            messageList.appendChild(li);
+
+            // 스크롤 맨 아래로
+            messageList.scrollTop = messageList.scrollHeight;
+        }
+
+        function connect() {
+            const socket = new SockJS(/*[[@{/ws}]]*/);
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, () => {
+                stompClient.subscribe('/topic/public', frame => {
+                    const msg = JSON.parse(frame.body);
+                    appendMessage(msg);
+                });
+                // 자동 입장 메시지
+                stompClient.send("/app/chat.join", {}, JSON.stringify({
+                    sender: username,
+                    type: 'JOIN'
+                }));
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            connect();
+            // 전송 버튼 엔터키로도 작동
+            document.getElementById('msgInput').addEventListener('keydown', e => {
+                if (e.key === 'Enter') document.getElementById('sendBtn').click();
+            });
+        });
+
+        document.getElementById('sendBtn').addEventListener('click', () => {
+            const content = document.getElementById('msgInput').value.trim();
+            if (content && stompClient) {
+                stompClient.send("/app/chat.send", {}, JSON.stringify({
+                    sender: username,
+                    content: content,
+                    type: 'CHAT'
+                }));
+                document.getElementById('msgInput').value = '';
+            }
+        });
+        /*]]>*/
+    </script>
+
+
+</body>
+</html>

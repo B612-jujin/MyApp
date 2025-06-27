@@ -3,27 +3,23 @@ package kr.ac.kopo.cjj.myapp.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;  // ← 추가
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @Configuration
-@EnableWebSecurity
 public class SecurityConfig {
 
-    // 1) 비밀번호 암호화기를 빈으로 등록
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // 2) In-Memory 사용자 등록 (DB 없이 메모리에만 저장)
     @Bean
     public InMemoryUserDetailsManager userDetailsService(PasswordEncoder encoder) {
         UserDetails user = User.builder()
@@ -41,30 +37,35 @@ public class SecurityConfig {
         return new InMemoryUserDetailsManager(user, admin);
     }
 
-    // 3) HTTP 보안 설정 (어떤 URL을 허용/보호할지)
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable) // CSRF 보호 비활성화 (API 서버 등에서는 필요할 수 있음)
-                // URL 권한 설정
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login", "/css/**", "/js/**").permitAll() // 로그인 페이지와 정적 리소스는 모두 허용
-                        .anyRequest().permitAll()                            // 그 외 모든 요청은 인증 필요
+        http
+                .csrf(csrf -> csrf.disable())  // CSRF 비활성화 시 GET/POST 모두 즉시 로그아웃
+                .authorizeHttpRequests(auth -> auth
+                        // 로그인·정적 리소스는 모두 공개
+                        .requestMatchers("/login", "/css/**", "/js/**").permitAll()
+                        // 채팅 페이지와 WS 핸드셰이크는 인증된 사용자만
+                        .requestMatchers("/chat", "/ws/**").authenticated()
+                        // 그 외도 모두 인증 필요
+                        .anyRequest().authenticated()
                 )
-                // 폼 로그인 설정
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .loginProcessingUrl("/login")// 커스텀 로그인 페이지 경로
-                        .defaultSuccessUrl("/home", true) // 로그인 성공 후 리다이렉트할 페이지
+                        .loginProcessingUrl("/login")
+                        .defaultSuccessUrl("/home", true)
                         .usernameParameter("username")
                         .passwordParameter("password")
-                        .permitAll()                      // 로그인 페이지는 누구나 접근 가능
+                        .permitAll()
                 )
-                // 로그아웃 설정
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/login?logout") // 로그아웃 성공 후 리다이렉트
-                        .logoutSuccessUrl("/login")
+                        .logoutUrl("/logout")                  // 기본 /logout 엔드포인트 사용
+                        .logoutSuccessUrl("/login?logout")     // 로그아웃 후 리다이렉트
+                        .invalidateHttpSession(true)           // 세션 무효화
+                        .deleteCookies("JSESSIONID")           // 쿠키 삭제
+                        .permitAll()                           // 누구나 접근 허용
                 );
 
         return http.build();
     }
+
 }
