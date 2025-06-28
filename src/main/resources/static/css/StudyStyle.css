@@ -62,3 +62,38 @@
 .calendar-table td {
     border: 1px solid #eee;
 }
+@media (max-width: 600px) {
+    /* ① 전체 래퍼를 column 방향으로 전환 */
+    .page-product-results {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    /* ② Music 바와 Study 컨텐츠 각각 full-width */
+    .filter-menu,
+    .study-container {
+        width: 100%;
+        margin: 0;
+    }
+
+    /* ③ Study 컨테이너도 세로 스택으로 변경 */
+    .study-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    /* ④ 타이머·캘린더 섹션 full-width */
+    .timer-section,
+    .calendar-section {
+        width: 100%;
+    }
+
+    /* ⑤ 캘린더 버튼 & 타이머 컨트롤 터치 친화적 사이즈 */
+    .timer-controls button,
+    .calendar-header button {
+        min-width: 48px;
+        min-height: 48px;
+    }
+}
