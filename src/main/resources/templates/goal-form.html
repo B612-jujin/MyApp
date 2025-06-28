@@ -15,7 +15,9 @@
 <div class="header">
   <div class="avatar-block">
     <div class="avatar">
-      <img class="shape" src="shape0.png" />
+      <img class="shape"
+           th:src="@{${profilePictureUrl}}"
+           alt="Profile Picture"/>
     </div>
     <div class="info">
       <div class="title" th:text="${#authentication.name}">USERNAME</div>
